@@ -1,6 +1,6 @@
 # ngm_polly
 
-ngm_polly is the plugin of nagome to read comments by [AWS polly](https://aws.amazon.com/polly/)
+ngm_polly is the plugin of nagome to read aloud comments by [AWS polly](https://aws.amazon.com/polly/)
 
 # requirement
 
