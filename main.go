@@ -142,6 +142,8 @@ func read_aloud(broad_id string, content []byte) (err error) {
 }
 
 func init_plugin() (err error) {
+	save_dir = filepath.Join(filepath.Dir(os.Args[0]), save_dir)
+	logger.Println(save_dir)
 	if _,err = os.Stat(save_dir); err == nil {
 		if err = os.RemoveAll(save_dir); err != nil {
 			return
