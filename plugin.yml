@@ -1,0 +1,12 @@
+name: nagome-talk
+description: ""
+version: "1.0"
+author: bamchoh
+method: std
+exec:
+- '{{path}}/ngm-polly'
+nagomever: ""
+subscribe:
+- nagome
+- nagome_ui
+- nagome_comment
