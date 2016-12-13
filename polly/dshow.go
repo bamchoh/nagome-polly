@@ -56,6 +56,8 @@ func Play(filename string) (err error) {
 	pMediaControl.Release()
 	pMediaControl.Release()
 	pGraphBuilder.Release()
+	
+	ole.CoUninitialize()
 
 	return
 }
