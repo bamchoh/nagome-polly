@@ -1,10 +1,10 @@
-name: nagome-talk
+name: nagome-polly
 description: ""
 version: "1.0"
 author: bamchoh
 method: std
 exec:
-- '{{path}}/ngm-polly'
+- '{{path}}/nagome-polly'
 nagomever: ""
 subscribe:
 - nagome

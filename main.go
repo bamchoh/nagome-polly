@@ -14,7 +14,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/bamchoh/ngm-polly/polly"
+	"github.com/bamchoh/nagome-polly/polly"
 )
 
 var (
@@ -63,8 +63,8 @@ type CtNagomeBroadOpen struct {
 }
 
 func set_log() *log.Logger {
-	f,_ := os.Create("ngm-polly.log")
-	return log.New(f, "ngm-polly", 0)
+	f,_ := os.Create("nagome-polly.log")
+	return log.New(f, "nagome-polly", 0)
 }
 
 func play(save_file string, m *sync.Mutex) {
@@ -132,8 +132,10 @@ func read_aloud(broad_id string, content []byte) (err error) {
 	save_file := filepath.Join(save_dir, broad_id+"_"+no+".mp3")
 
 	go func(msg, file string, m *sync.Mutex) {
+		logger.Println("send_aws:", file)
 		send_aws(msg,file)
 		wg.Add(1)
+		logger.Println("play:", file)
 		play(file, m)
 		wg.Done()
 	}(string(com.Raw), save_file, m)
