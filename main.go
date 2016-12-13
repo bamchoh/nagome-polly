@@ -14,7 +14,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/bamchoh/nagome-talk/polly"
+	"github.com/bamchoh/ngm-polly/polly"
 )
 
 var (
