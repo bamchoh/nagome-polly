@@ -191,7 +191,10 @@ func main() {
 		}
 		switch msg.Command {
 		case "Broad.Open":
-			pick_broad_id(msg.Content)
+			broad_id, err = pick_broad_id(msg.Content)
+			if err != nil {
+				logger.Println(msg.Command, err)
+			}
 		case "Got":
 			read_aloud(broad_id, msg.Content)
 		default:
