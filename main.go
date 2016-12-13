@@ -63,8 +63,8 @@ type CtNagomeBroadOpen struct {
 }
 
 func set_log() *log.Logger {
-	f,_ := os.Create("test.log")
-	return log.New(f, "nagome-talk:", 0)
+	f,_ := os.Create("ngm-polly.log")
+	return log.New(f, "ngm-polly", 0)
 }
 
 func play(save_file string, m *sync.Mutex) {
