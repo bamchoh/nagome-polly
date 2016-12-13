@@ -1,11 +1,11 @@
-# ngm_polly
+# nagome_polly
 
-ngm_polly is the plugin of nagome to read aloud comments by nico nico live streaming by using [AWS polly](https://aws.amazon.com/polly/)
+nagome_polly is the plugin of nagome to read aloud comments by nico nico live streaming by using [AWS polly](https://aws.amazon.com/polly/)
 
 # requirement
 
-ngm_polly needs AWS CLI. Please download it from https://aws.amazon.com/cli/, and install it.
+nagome_polly needs AWS CLI. Please download it from https://aws.amazon.com/cli/, and install it.
 
 # support platform
 
-it supports only Windows. ngm_polly is using Direct Show library.
+it supports only Windows. nagome_polly is using Direct Show library.
