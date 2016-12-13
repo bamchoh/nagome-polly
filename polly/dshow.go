@@ -52,5 +52,10 @@ func Play(filename string) (err error) {
 	for ev := 0; ev == 0; {
 		_ = oleutil.MustCallMethod(pMediaEvent, "WaitForCompletion", INFINITE, &ev)
 	}
+
+	pMediaControl.Release()
+	pMediaControl.Release()
+	pGraphBuilder.Release()
+
 	return
 }
