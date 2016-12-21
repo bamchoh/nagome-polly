@@ -14,14 +14,12 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/bamchoh/nagome-polly/polly"
+	"github.com/bamchoh/nagome-polly/player"
 )
 
 var (
 	logger *log.Logger
 	save_dir string = "mp3"
-	wg *sync.WaitGroup = new(sync.WaitGroup)
-	m *sync.Mutex = new(sync.Mutex)
 )
 
 type Message struct {
@@ -72,7 +70,7 @@ func play(save_file string, m *sync.Mutex) {
 	defer m.Unlock()
 	var err error
 
-	err = polly.Play(save_file)
+	err = player.Play(save_file)
 	if err != nil {
 		logger.Println(err)
 		return
@@ -87,7 +85,9 @@ func play(save_file string, m *sync.Mutex) {
 	return
 }
 
-func send_aws(msg, file string) (err error) {
+func send_aws(msg, file string, m *sync.Mutex) (err error) {
+	m.Lock()
+	defer m.Unlock()
 	packed_msg := `<speak><prosody rate="100%"><![CDATA[`+msg+`]]></prosody></speak>`
 	cmd := exec.Command(
 		"aws",
@@ -101,7 +101,9 @@ func send_aws(msg, file string) (err error) {
 		file,
 	)
 
-	err = cmd.Run()
+	out, err := cmd.Output()
+
+	logger.Println(string(out))
 
 	if err != nil {
 		logger.Println(err)
@@ -109,7 +111,7 @@ func send_aws(msg, file string) (err error) {
 	return
 }
 
-func read_aloud(broad_id string, content []byte) (err error) {
+func read_aloud(broad_id string, content []byte, m1 *sync.Mutex, m2 *sync.Mutex) (err error) {
 	dec := json.NewDecoder(bytes.NewReader(content))
 	com := new(CtCommentGot)
 	err = dec.Decode(com)
@@ -131,14 +133,12 @@ func read_aloud(broad_id string, content []byte) (err error) {
 	no := strconv.Itoa(com.No)
 	save_file := filepath.Join(save_dir, broad_id+"_"+no+".mp3")
 
-	go func(msg, file string, m *sync.Mutex) {
+	go func(msg, file string) {
 		logger.Println("send_aws:", file)
-		send_aws(msg,file)
-		wg.Add(1)
+		send_aws(msg,file,m1)
 		logger.Println("play:", file)
-		play(file, m)
-		wg.Done()
-	}(string(com.Raw), save_file, m)
+		play(file,m2)
+	}(string(com.Raw), save_file)
 
 	return
 }
@@ -174,6 +174,8 @@ func pick_broad_id(content []byte) (broad_id string, err error) {
 }
 
 func main() {
+	var m1 *sync.Mutex = new(sync.Mutex)
+	var m2 *sync.Mutex = new(sync.Mutex)
 	var broad_id string
 	logger = set_log()
 
@@ -198,7 +200,7 @@ func main() {
 				logger.Println(msg.Command, err)
 			}
 		case "Got":
-			read_aloud(broad_id, msg.Content)
+			read_aloud(broad_id, msg.Content, m1, m2)
 		default:
 			logger.Println(msg.Command)
 		}
@@ -207,10 +209,4 @@ func main() {
 	if err := scanner.Err(); err != nil {
 		logger.Println("reading standard input:", err)
 	}
-
-	wg.Wait()
-	// scanner := bufio.NewScanner(os.Stdin)
-	// for scanner.Scan() {
-	// 	fmt.Println("--- got a comment ---")
-	// }
 }
