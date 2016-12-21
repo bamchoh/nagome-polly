@@ -1,12 +1,14 @@
 package player
 
 import (
-	_ "errors"
-	_ "flag"
-	_ "os"
-	_ "fmt"
+	"io/ioutil"
+	"os"
+	"io"
+	"bufio"
+
 	"github.com/go-ole/go-ole"
 	"github.com/go-ole/go-ole/oleutil"
+	"github.com/aws/aws-sdk-go/service/polly"
 )
 
 var (
@@ -21,7 +23,30 @@ var (
 	INFINITE = int(-1)
 )
 
-func Play(filename string) (err error) {
+func save_file(resp *polly.SynthesizeSpeechOutput, f *os.File) {
+	writer := bufio.NewWriter(f)
+	io.Copy(writer, resp.AudioStream)
+	writer.Flush()
+}
+
+
+func Play(resp *polly.SynthesizeSpeechOutput) error {
+	tmpfile,err := ioutil.TempFile("","ngm-polly-")
+	if err != nil {
+		return err
+	}
+	defer os.Remove(tmpfile.Name())
+
+	save_file(resp, tmpfile)
+	if err := tmpfile.Close(); err != nil {
+		return err
+	}
+
+	return play(tmpfile.Name())
+}
+
+
+func play(filename string) (err error) {
 	connection := &ole.Connection{nil}
 
 	err = connection.Initialize()

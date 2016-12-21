@@ -9,7 +9,6 @@ import (
 	"strings"
 	"bufio"
 	"os"
-	"os/exec"
 	"log"
 	"encoding/json"
 	"time"
@@ -65,45 +64,24 @@ func set_log() *log.Logger {
 	return log.New(f, "nagome-polly", 0)
 }
 
-func play(save_file string, m *sync.Mutex) {
-	m.Lock()
-	defer m.Unlock()
-	var err error
-
-	err = player.Play(save_file)
-	if err != nil {
-		logger.Println(err)
-		return
-	}
-
-	err = os.Remove(save_file)
-	if err != nil {
-		logger.Println(err)
-		return
-	}
-
-	return
-}
-
 func send_aws(msg, file string, m *sync.Mutex) (err error) {
 	m.Lock()
 	defer m.Unlock()
 	packed_msg := `<speak><prosody rate="100%"><![CDATA[`+msg+`]]></prosody></speak>`
-	cmd := exec.Command(
-		"aws",
-		"polly",
-		"synthesize-speech",
-		"--region", "us-west-2",
-		"--output-format", "mp3",
-		"--voice-id", "Mizuki",
-		"--text-type", "ssml",
-		"--text", packed_msg,
-		file,
-	)
 
-	out, err := cmd.Output()
+	pc := PollyConfig{"us-west-2", "mp3", "Mizuki","ssml",packed_msg,nil}
+	pc.Polly,err = init_polly(pc.Region)
+	if err != nil {
+		logger.Println(err)
+		return
+	}
 
-	logger.Println(string(out))
+	resp,err := synthesize_speech(pc)
+	if err != nil {
+		logger.Println(err)
+		return
+	}
+	err = player.Play(resp)
 
 	if err != nil {
 		logger.Println(err)
@@ -136,28 +114,13 @@ func read_aloud(broad_id string, content []byte, m1 *sync.Mutex, m2 *sync.Mutex)
 	go func(msg, file string) {
 		logger.Println("send_aws:", file)
 		send_aws(msg,file,m1)
-		logger.Println("play:", file)
-		play(file,m2)
 	}(string(com.Raw), save_file)
 
 	return
 }
 
 func init_plugin() (err error) {
-	save_dir = filepath.Join(filepath.Dir(os.Args[0]), save_dir)
-	logger.Println(save_dir)
-	if _,err = os.Stat(save_dir); err == nil {
-		if err = os.RemoveAll(save_dir); err != nil {
-			return
-		}
-	}
-
-	if _,err = os.Stat(save_dir); err != nil {
-		logger.Println(err)
-		err = os.MkdirAll(save_dir, 0755)
-		return
-	}
-
+	// NOP for now
 	return
 }
 
