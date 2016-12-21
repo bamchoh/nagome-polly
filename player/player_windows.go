@@ -95,8 +95,8 @@ func play(filename string) (err error) {
 	}
 
 	var res *ole.VARIANT
-	res = oleutil.MustCallMethod(pMediaControl, "RenderFile", filename)
-	if res == nil {
+	res,err = oleutil.CallMethod(pMediaControl, "RenderFile", filename)
+	if (err != nil || res == nil) {
 		pMediaEvent.Release()
 		pMediaControl.Release()
 		pGraphBuilder.Release()
