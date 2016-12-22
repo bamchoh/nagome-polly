@@ -19,6 +19,7 @@ import (
 var (
 	logger *log.Logger
 	save_dir string = "mp3"
+	pc *PollyConfig
 )
 
 type Message struct {
@@ -61,7 +62,7 @@ type CtNagomeBroadOpen struct {
 
 func set_log() *log.Logger {
 	f,_ := os.Create("nagome-polly.log")
-	return log.New(f, "nagome-polly", 0)
+	return log.New(f, "nagome-polly:", 0)
 }
 
 func send_aws(msg, file string, m *sync.Mutex) (err error) {
@@ -69,14 +70,7 @@ func send_aws(msg, file string, m *sync.Mutex) (err error) {
 	defer m.Unlock()
 	packed_msg := `<speak><prosody rate="100%"><![CDATA[`+msg+`]]></prosody></speak>`
 
-	pc := PollyConfig{"us-west-2", "mp3", "Mizuki","ssml",packed_msg,nil}
-	pc.Polly,err = init_polly(pc.Region)
-	if err != nil {
-		logger.Println(err)
-		return
-	}
-
-	resp,err := synthesize_speech(pc)
+	resp,err := synthesize_speech(pc, packed_msg)
 	if err != nil {
 		logger.Println(err)
 		return
@@ -112,7 +106,6 @@ func read_aloud(broad_id string, content []byte, m1 *sync.Mutex, m2 *sync.Mutex)
 	save_file := filepath.Join(save_dir, broad_id+"_"+no+".mp3")
 
 	go func(msg, file string) {
-		logger.Println("send_aws:", file)
 		send_aws(msg,file,m1)
 	}(string(com.Raw), save_file)
 
@@ -120,6 +113,21 @@ func read_aloud(broad_id string, content []byte, m1 *sync.Mutex, m2 *sync.Mutex)
 }
 
 func init_plugin() (err error) {
+	basedir := filepath.Dir(os.Args[0])
+	filepath := filepath.Join(basedir, "nagome-polly.yml")
+	f,err := os.Open(filepath)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	defer f.Close()
+
+	pc,err = load(f)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
 	// NOP for now
 	return
 }
