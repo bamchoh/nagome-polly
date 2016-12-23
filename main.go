@@ -75,7 +75,7 @@ func send_aws(msg, file string, m *sync.Mutex) (err error) {
 		logger.Println(err)
 		return
 	}
-	err = player.Play(resp)
+	err = player.Play(resp,logger)
 
 	if err != nil {
 		logger.Println(err)
