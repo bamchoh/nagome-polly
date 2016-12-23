@@ -82,7 +82,7 @@ func send_aws(msg string, m *sync.Mutex, speed int) (resp *polly.SynthesizeSpeec
 func play(resp *polly.SynthesizeSpeechOutput, m *sync.Mutex) (err error) {
 	m.Lock()
 	defer m.Unlock()
-	err = player.Play(resp)
+	err = player.Play(resp,logger)
 
 	if err != nil {
 		logger.Println(err)
