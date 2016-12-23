@@ -42,7 +42,7 @@ go build
 
 nagome-polly.yml is a setting file. nagome-polly needs access key and session key for AWS Polly.
 
-Create these keys according to http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-getting-started.html
+Create these keys according to https://docs.aws.amazon.com/general/latest/gr/managing-aws-access-keys.html
 
 And then, Write these keys in the file.
 
