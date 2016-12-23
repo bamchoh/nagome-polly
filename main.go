@@ -70,9 +70,13 @@ func set_log() *log.Logger {
 	return log.New(f, "nagome-polly:", 0)
 }
 
-func send_aws(msg string, m *sync.Mutex, speed int) (resp *polly.SynthesizeSpeechOutput, err error) {
+func send_aws(msg string, m *sync.Mutex) (resp *polly.SynthesizeSpeechOutput, err error) {
 	m.Lock()
 	defer m.Unlock()
+
+	speed := 100
+	speed += 20 * (counter-1)
+
 	packed_msg := `<speak><prosody rate="`+strconv.Itoa(speed)+`%"><![CDATA[`+msg+`]]></prosody></speak>`
 
 	resp,err = synthesize_speech(pc, packed_msg)
@@ -130,10 +134,7 @@ func read_aloud(broad_id string, content []byte, m1 *sync.Mutex, m2 *sync.Mutex)
 			return
 		}
 
-		speed := 100
-		speed += 20 * (counter-1)
-
-		resp,err := send_aws(msg,m1,speed)
+		resp,err := send_aws(msg,m1)
 		if err != nil {
 			logger.Println(err)
 			return
