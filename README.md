@@ -28,6 +28,7 @@ When Ubuntu 16.04. you can install it by apt
 
 ```
 $ sudo apt-get install sox
+$ sudo apt-get install libsox-fmt-mp3
 ```
 
 ## Build
