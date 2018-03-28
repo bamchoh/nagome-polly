@@ -1,28 +1,28 @@
 package main
 
 import (
-	"regexp"
-	"sync"
-	"path/filepath"
-	"strconv"
-	"bytes"
-	"strings"
 	"bufio"
-	"os"
-	"log"
+	"bytes"
 	"encoding/json"
+	"log"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strconv"
+	"strings"
+	"sync"
 	"time"
 
-	"github.com/bamchoh/nagome-polly/player"
 	"github.com/aws/aws-sdk-go/service/polly"
+	"github.com/bamchoh/nagome-polly/player"
 )
 
 var (
-	logger *log.Logger
-	save_dir string = "mp3"
-	pc *PollyConfig
+	logger       *log.Logger
+	save_dir     string = "mp3"
+	pc           *PollyConfig
 	started_time time.Time
-	counter int
+	counter      int
 )
 
 type Message struct {
@@ -66,7 +66,7 @@ type CtNagomeBroadOpen struct {
 func set_log() *log.Logger {
 	basedir := filepath.Dir(os.Args[0])
 	log_path := filepath.Join(basedir, "nagome-polly.log")
-	f,_ := os.Create(log_path)
+	f, _ := os.Create(log_path)
 	return log.New(f, "nagome-polly:", 0)
 }
 
@@ -75,18 +75,18 @@ func send_aws(msg string, m *sync.Mutex) (resp *polly.SynthesizeSpeechOutput, er
 	defer m.Unlock()
 
 	speed := 100
-	speed += 20 * (counter-1)
+	speed += 20 * (counter - 1)
 
-	packed_msg := `<speak><prosody rate="`+strconv.Itoa(speed)+`%"><![CDATA[`+msg+`]]></prosody></speak>`
+	packed_msg := `<speak><prosody rate="` + strconv.Itoa(speed) + `%"><![CDATA[` + msg + `]]></prosody></speak>`
 
-	resp,err = synthesize_speech(pc, packed_msg)
+	resp, err = synthesize_speech(pc, packed_msg)
 	return
 }
 
 func play(resp *polly.SynthesizeSpeechOutput, m *sync.Mutex) (err error) {
 	m.Lock()
 	defer m.Unlock()
-	err = player.Play(resp,logger)
+	err = player.Play(resp, logger)
 
 	if err != nil {
 		logger.Println(err)
@@ -115,7 +115,7 @@ func read_aloud(broad_id string, content []byte, m1 *sync.Mutex, m2 *sync.Mutex)
 		return
 	}
 
-	matched,err := regexp.MatchString("^/hb", com.Raw)
+	matched, err := regexp.MatchString("^/hb", com.Raw)
 	if err != nil {
 		logger.Println(err)
 		return
@@ -134,12 +134,12 @@ func read_aloud(broad_id string, content []byte, m1 *sync.Mutex, m2 *sync.Mutex)
 			return
 		}
 
-		resp,err := send_aws(msg,m1)
+		resp, err := send_aws(msg, m1)
 		if err != nil {
 			logger.Println(err)
 			return
 		}
-		play(resp,m2)
+		play(resp, m2)
 	}(string(com.Raw))
 
 	return
@@ -148,14 +148,14 @@ func read_aloud(broad_id string, content []byte, m1 *sync.Mutex, m2 *sync.Mutex)
 func init_plugin() (err error) {
 	basedir := filepath.Dir(os.Args[0])
 	filepath := filepath.Join(basedir, "nagome-polly.yml")
-	f,err := os.Open(filepath)
+	f, err := os.Open(filepath)
 	if err != nil {
 		log.Println(err)
 		return err
 	}
 	defer f.Close()
 
-	pc,err = load(f)
+	pc, err = load(f)
 	if err != nil {
 		log.Println(err)
 		return err

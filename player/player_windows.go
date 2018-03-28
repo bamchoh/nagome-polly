@@ -1,14 +1,15 @@
 package player
 
 import (
-	"io/ioutil"
-	"os"
-	"io"
 	"bufio"
+	"io"
+	"io/ioutil"
+	"log"
+	"os"
 
+	"github.com/aws/aws-sdk-go/service/polly"
 	"github.com/go-ole/go-ole"
 	"github.com/go-ole/go-ole/oleutil"
-	"github.com/aws/aws-sdk-go/service/polly"
 )
 
 var (
@@ -18,7 +19,7 @@ var (
 
 	IID_IMediaControl = ole.NewGUID("{56A868B1-0AD4-11CE-B03A-0020AF0BA770}")
 
-	IID_IMediaEvent   = ole.NewGUID("{56a868b6-0ad4-11ce-b03a-0020af0ba770}")
+	IID_IMediaEvent = ole.NewGUID("{56a868b6-0ad4-11ce-b03a-0020af0ba770}")
 
 	INFINITE = int(-1)
 )
@@ -29,9 +30,8 @@ func save_file(resp *polly.SynthesizeSpeechOutput, f *os.File) {
 	writer.Flush()
 }
 
-
-func Play(resp *polly.SynthesizeSpeechOutput) error {
-	tmpfile,err := ioutil.TempFile("","ngm-polly-")
+func Play(resp *polly.SynthesizeSpeechOutput, logger *log.Logger) error {
+	tmpfile, err := ioutil.TempFile("", "ngm-polly-")
 	if err != nil {
 		return err
 	}
@@ -44,7 +44,6 @@ func Play(resp *polly.SynthesizeSpeechOutput) error {
 
 	return play(tmpfile.Name())
 }
-
 
 func play(filename string) (err error) {
 	connection := &ole.Connection{nil}
@@ -64,7 +63,7 @@ func play(filename string) (err error) {
 		return
 	}
 
-	pMediaControl,err := pGraphBuilder.QueryInterface(IID_IMediaControl)
+	pMediaControl, err := pGraphBuilder.QueryInterface(IID_IMediaControl)
 	if err != nil {
 		if pMediaControl != nil {
 			pMediaControl.Release()
@@ -77,7 +76,7 @@ func play(filename string) (err error) {
 		return
 	}
 
-	pMediaEvent,err := pGraphBuilder.QueryInterface(IID_IMediaEvent)
+	pMediaEvent, err := pGraphBuilder.QueryInterface(IID_IMediaEvent)
 	if err != nil {
 		if pMediaEvent != nil {
 			pMediaEvent.Release()
@@ -95,8 +94,8 @@ func play(filename string) (err error) {
 	}
 
 	var res *ole.VARIANT
-	res,err = oleutil.CallMethod(pMediaControl, "RenderFile", filename)
-	if (err != nil || res == nil) {
+	res, err = oleutil.CallMethod(pMediaControl, "RenderFile", filename)
+	if err != nil || res == nil {
 		pMediaEvent.Release()
 		pMediaControl.Release()
 		pGraphBuilder.Release()
@@ -112,7 +111,6 @@ func play(filename string) (err error) {
 		ole.CoUninitialize()
 		return
 	}
-
 
 	for ev := 0; ev == 0; {
 		res = oleutil.MustCallMethod(pMediaEvent, "WaitForCompletion", INFINITE, &ev)
